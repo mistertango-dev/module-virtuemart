@@ -1,33 +1,17 @@
 <?php
-/**
- * @package     Joomla.Site
- * @subpackage  com_search
- *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE.txt
- */
 
 defined('_JEXEC') or die;
 
 /**
- * HTML View class for the search component
- *
- * @package     Joomla.Site
- * @subpackage  com_search
- * @since       1.0
+ * Class MistertangoViewpayment
  */
 class MistertangoViewpayment extends JViewLegacy
 {
 	/**
-	 * Execute and display a template script.
-	 *
-	 * @param   string  $tpl  The name of the template file to parse; automatically searches through the template paths.
-	 *
-	 * @return  mixed  A string if successful, otherwise a Error object.
+	 * @param null $tpl
 	 */
 	public function display($tpl = null)
 	{
-		
 		$app     = JFactory::getApplication();
 		$uri     = JUri::getInstance();
 		$error   = null;
@@ -35,14 +19,11 @@ class MistertangoViewpayment extends JViewLegacy
 		$results = null;
 		$total   = 0;
 
-		// Get some data from the model
-		
-		$params     = $app->getParams();
+		$params = $app->getParams();
 
 		$menus = $app->getMenu();
 		$menu  = $menus->getActive();
 
-		// Because the application sets a default page title, we need to get it right from the menu item itself
 		if (is_object($menu))
 		{
 			$menu_params = new JRegistry;
@@ -85,7 +66,6 @@ class MistertangoViewpayment extends JViewLegacy
 		{
 			$this->document->setMetadata('robots', $params->get('robots'));
 		}
-
 
 		parent::display($tpl);
 	}
