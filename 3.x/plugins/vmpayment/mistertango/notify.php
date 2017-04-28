@@ -2,86 +2,86 @@
 
 define('DS', DIRECTORY_SEPARATOR);
 $rootFolder = dirname(__FILE__);
-$base_folder = dirname(dirname($rootFolder));
+$baseFolder = dirname(dirname($rootFolder));
 
-if (is_dir($base_folder . DS . 'libraries' . DS . 'joomla')) {
-
+if (is_dir($baseFolder . DS . 'libraries' . DS . 'joomla'))
+{
 	define('_JEXEC', 1);
-	define('JPATH_BASE', $base_folder);
+	define('JPATH_BASE', $baseFolder);
 
 	require_once(JPATH_BASE . DS . 'includes' . DS . 'defines.php');
 	require_once(JPATH_BASE . DS . 'includes' . DS . 'framework.php');
-	$userid 	= '';
-	$usertype 	= '';
-	$mainframe 	=& JFactory::getApplication('site');
+	$userid    = '';
+	$usertype  = '';
+	$mainframe =& JFactory::getApplication('site');
 	$mainframe->initialise();
 
-	$user 		=& JFactory::getUser();
-	$userid 	= $user->get('id');
-	$usertype 	= $user->get('usertype');
-
+	$user     =& JFactory::getUser();
+	$userid   = $user->get('id');
+	$usertype = $user->get('usertype');
 
 	$aCallbackData = $_POST;
 
-
-		$db = JFactory::getDbo();
-	$query = $db->getQuery(TRUE);
+	$db    = JFactory::getDbo();
+	$query = $db->getQuery(true);
 	$query->select('*');
 	$query->from($db->quoteName('#__virtuemart_paymentmethods'));
 	$query->where($db->quoteName('payment_element') . ' LIKE ' . $db->quote('%mistertango%'));
 	$db->setQuery($query);
 	$res = $db->loadObject();
 
-	parse_str(str_replace(array('|','"'),array('&',''),$res->payment_params), $aConfigParams);
+	parse_str(str_replace(array('|', '"'), array('&', ''), $res->payment_params), $aConfigParams);
 
 	if (empty($aConfigParams) || !$aConfigParams['secret'])
 		die('SecretKey not provided');
 
 	$aConfigParams['secret'] = trim($aConfigParams['secret']);
 
-
-	$aCallbackHeader = @json_decode(decrypt($aCallbackData['hash'], $aConfigParams['secret']), TRUE);
+	$aCallbackHeader = @json_decode(decrypt($aCallbackData['hash'], $aConfigParams['secret']), true);
 
 	if (empty($aCallbackHeader))
+	{
 		die('Hash empty. Please check secret key.');
+	}
 
-	$aCallbackBody = @json_decode($aCallbackHeader['custom'], TRUE);
+	$aCallbackBody = @json_decode($aCallbackHeader['custom'], true);
 
 	if (empty($aCallbackBody))
+	{
 		die('Callback body not found');
+	}
 
-
-	if (!empty($aCallbackBody)) {
+	if (!empty($aCallbackBody))
+	{
 		//TODO: find your order $aCallbackBody['description']
 		//TODO: check amount $aCallbackBody['data']['amount']
 		//TODO: change your order status
 
 		$oidd = trim($aCallbackBody['description']);
-		
-		
+
 		$amt = (float) trim($aCallbackBody['data']['amount']);
 
-		$db = JFactory::getDbo();
-		$query = $db->getQuery(TRUE);
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true);
 		$query->select('*');
 		$query->from($db->quoteName('#__virtuemart_orders'));
 		$query->where($db->quoteName('order_number') . ' = ' . $db->quote($oidd));
 		$db->setQuery($query);
 		$res = $db->loadObject();
-		
+
 		$order_total = (float) $res->order_total;
-		$amt = (float) trim($aCallbackBody['data']['amount']);
+		$amt         = (float) trim($aCallbackBody['data']['amount']);
 
-		if($amt < $order_total)
-		 die('Amount too small');
-
-		
+		if ($amt < $order_total)
+		{
+			die('Amount too small');
+		}
 
 		if (isset($res->order_status) && $res->order_status != 'C')
 		{
-			$oid = $res->virtuemart_order_id;
-			$db = JFactory::getDbo();
-			$query = $db->getQuery(TRUE);
+			$oid    = $res->virtuemart_order_id;
+			$db     = JFactory::getDbo();
+			$query  = $db->getQuery(true);
 			$fields = array(
 				$db->quoteName('order_status') . ' = "C"'
 			);
@@ -95,8 +95,8 @@ if (is_dir($base_folder . DS . 'libraries' . DS . 'joomla')) {
 			$result = $db->execute();
 
 
-			$db = JFactory::getDbo();
-			$query = $db->getQuery(TRUE);
+			$db     = JFactory::getDbo();
+			$query  = $db->getQuery(true);
 			$fields = array(
 				$db->quoteName('order_status') . ' = "C"'
 			);
@@ -113,15 +113,19 @@ if (is_dir($base_folder . DS . 'libraries' . DS . 'joomla')) {
 
 		die('OK');
 	}
-
 }
 
-
+/**
+ * @param $encoded_text
+ * @param $key
+ *
+ * @return string
+ */
 function decrypt($encoded_text, $key)
 {
 	$key = str_pad($key, 32, "\0");
 
-	$encoded_text = trim($encoded_text);
+	$encoded_text   = trim($encoded_text);
 	$ciphertext_dec = base64_decode($encoded_text);
 
 	$iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);
