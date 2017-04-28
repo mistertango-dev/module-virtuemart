@@ -122,7 +122,7 @@ window.location.href="index.php?option=com_virtuemart&view=cart&layout=order_don
 </script>
 <h3><?php echo JText::_('COM_MISTERTANGO_TITLE'); ?></h3>
 
-<p><?php echo JText::_('COM_MISTERTANGO_TEXT'); ?><button onclick='mrTangoCollect.submit("<?php echo $amount; ?>", "EUR", "<?php echo $order; ?>");' id="pay-button"><?php echo JText::_('COM_MISTERTANGO_BTN_TITLE'); ?></button>.</p>
+<p><?php echo JText::_('COM_MISTERTANGO_TEXT'); ?><a href="#" onclick='mrTangoCollect.submit("<?php echo $amount; ?>", "EUR", "<?php echo $order; ?>");' id="pay-button"><?php echo JText::_('COM_MISTERTANGO_BTN_TITLE'); ?></a>.</p>
 
 <style>
 .warning{display:none;}
