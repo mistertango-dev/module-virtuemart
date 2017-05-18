@@ -11,6 +11,7 @@
     <description>MisterTango payment gateway</description>
     <files>
         <filename plugin="mistertango">mistertango.php</filename>
+        <filename plugin="mistertango">notify.php</filename>
         <folder>language</folder>
     </files>
     <vmconfig>
