@@ -1,118 +1,113 @@
 <?php
 
 define('DS', DIRECTORY_SEPARATOR);
-$rootFolder = dirname(__FILE__);
-$baseFolder = dirname(dirname($rootFolder));
 
-if (is_dir($baseFolder . DS . 'libraries' . DS . 'joomla'))
+define('_JEXEC', 1);
+define('JPATH_BASE', dirname(dirname(dirname(dirname(__FILE__)))));
+
+require_once(JPATH_BASE . DS . 'includes' . DS . 'defines.php');
+require_once(JPATH_BASE . DS . 'includes' . DS . 'framework.php');
+$userid    = '';
+$usertype  = '';
+$mainframe =& JFactory::getApplication('site');
+$mainframe->initialise();
+
+$user     =& JFactory::getUser();
+$userid   = $user->get('id');
+$usertype = $user->get('usertype');
+
+$aCallbackData = $_POST;
+
+$db    = JFactory::getDbo();
+$query = $db->getQuery(true);
+$query->select('*');
+$query->from($db->quoteName('#__virtuemart_paymentmethods'));
+$query->where($db->quoteName('payment_element') . ' LIKE ' . $db->quote('%mistertango%'));
+$db->setQuery($query);
+$res = $db->loadObject();
+
+parse_str(str_replace(array('|', '"'), array('&', ''), $res->payment_params), $aConfigParams);
+
+if (empty($aConfigParams) || !$aConfigParams['secret'])
+	die('SecretKey not provided');
+
+$aConfigParams['secret'] = trim($aConfigParams['secret']);
+
+$aCallbackHeader = @json_decode(decrypt($aCallbackData['hash'], $aConfigParams['secret']), true);
+
+if (empty($aCallbackHeader))
 {
-	define('_JEXEC', 1);
-	define('JPATH_BASE', $baseFolder);
+	die('Hash empty. Please check secret key.');
+}
 
-	require_once(JPATH_BASE . DS . 'includes' . DS . 'defines.php');
-	require_once(JPATH_BASE . DS . 'includes' . DS . 'framework.php');
-	$userid    = '';
-	$usertype  = '';
-	$mainframe =& JFactory::getApplication('site');
-	$mainframe->initialise();
+$aCallbackBody = @json_decode($aCallbackHeader['custom'], true);
 
-	$user     =& JFactory::getUser();
-	$userid   = $user->get('id');
-	$usertype = $user->get('usertype');
+if (empty($aCallbackBody))
+{
+	die('Callback body not found');
+}
 
-	$aCallbackData = $_POST;
+if (!empty($aCallbackBody))
+{
+	//TODO: find your order $aCallbackBody['description']
+	//TODO: check amount $aCallbackBody['data']['amount']
+	//TODO: change your order status
+
+	$oidd = trim($aCallbackBody['description']);
+
+	$amt = (float) trim($aCallbackBody['data']['amount']);
 
 	$db    = JFactory::getDbo();
 	$query = $db->getQuery(true);
 	$query->select('*');
-	$query->from($db->quoteName('#__virtuemart_paymentmethods'));
-	$query->where($db->quoteName('payment_element') . ' LIKE ' . $db->quote('%mistertango%'));
+	$query->from($db->quoteName('#__virtuemart_orders'));
+	$query->where($db->quoteName('order_number') . ' = ' . $db->quote($oidd));
 	$db->setQuery($query);
 	$res = $db->loadObject();
 
-	parse_str(str_replace(array('|', '"'), array('&', ''), $res->payment_params), $aConfigParams);
+	$order_total = (float) $res->order_total;
+	$amt         = (float) trim($aCallbackBody['data']['amount']);
 
-	if (empty($aConfigParams) || !$aConfigParams['secret'])
-		die('SecretKey not provided');
-
-	$aConfigParams['secret'] = trim($aConfigParams['secret']);
-
-	$aCallbackHeader = @json_decode(decrypt($aCallbackData['hash'], $aConfigParams['secret']), true);
-
-	if (empty($aCallbackHeader))
+	if ($amt < $order_total)
 	{
-		die('Hash empty. Please check secret key.');
+		die('Amount too small');
 	}
 
-	$aCallbackBody = @json_decode($aCallbackHeader['custom'], true);
-
-	if (empty($aCallbackBody))
+	if (isset($res->order_status) && $res->order_status != 'C')
 	{
-		die('Callback body not found');
-	}
+		$oid    = $res->virtuemart_order_id;
+		$db     = JFactory::getDbo();
+		$query  = $db->getQuery(true);
+		$fields = array(
+			$db->quoteName('order_status') . ' = "C"'
+		);
 
-	if (!empty($aCallbackBody))
-	{
-		//TODO: find your order $aCallbackBody['description']
-		//TODO: check amount $aCallbackBody['data']['amount']
-		//TODO: change your order status
+		$conditions = array(
+			$db->quoteName('order_number') . ' = ' . $db->quote($oidd)
+		);
+		$query->update($db->quoteName('#__virtuemart_orders'))->set($fields)->where($conditions);
 
-		$oidd = trim($aCallbackBody['description']);
-
-		$amt = (float) trim($aCallbackBody['data']['amount']);
-
-		$db    = JFactory::getDbo();
-		$query = $db->getQuery(true);
-		$query->select('*');
-		$query->from($db->quoteName('#__virtuemart_orders'));
-		$query->where($db->quoteName('order_number') . ' = ' . $db->quote($oidd));
 		$db->setQuery($query);
-		$res = $db->loadObject();
-
-		$order_total = (float) $res->order_total;
-		$amt         = (float) trim($aCallbackBody['data']['amount']);
-
-		if ($amt < $order_total)
-		{
-			die('Amount too small');
-		}
-
-		if (isset($res->order_status) && $res->order_status != 'C')
-		{
-			$oid    = $res->virtuemart_order_id;
-			$db     = JFactory::getDbo();
-			$query  = $db->getQuery(true);
-			$fields = array(
-				$db->quoteName('order_status') . ' = "C"'
-			);
-
-			$conditions = array(
-				$db->quoteName('order_number') . ' = ' . $db->quote($oidd)
-			);
-			$query->update($db->quoteName('#__virtuemart_orders'))->set($fields)->where($conditions);
-
-			$db->setQuery($query);
-			$result = $db->execute();
+		$result = $db->execute();
 
 
-			$db     = JFactory::getDbo();
-			$query  = $db->getQuery(true);
-			$fields = array(
-				$db->quoteName('order_status') . ' = "C"'
-			);
+		$db     = JFactory::getDbo();
+		$query  = $db->getQuery(true);
+		$fields = array(
+			$db->quoteName('order_status') . ' = "C"'
+		);
 
-			$conditions = array(
-				$db->quoteName(virtuemart_order_id) . ' = ' . $db->quote($oid)
-			);
+		$conditions = array(
+			$db->quoteName(virtuemart_order_id) . ' = ' . $db->quote($oid)
+		);
 
-			$query->update($db->quoteName('#__virtuemart_order_items'))->set($fields)->where($conditions);
-			$db->setQuery($query);
+		$query->update($db->quoteName('#__virtuemart_order_items'))->set($fields)->where($conditions);
+		$db->setQuery($query);
 
-			$result = $db->execute();
-		}
-
-		die('OK');
+		$result = $db->execute();
 	}
+
+	die('OK');
 }
 
 /**
@@ -141,4 +136,3 @@ function decrypt($encoded_text, $key)
 
 	return trim($sResult);
 }
-

@@ -1,46 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" version="3.1" method="upgrade">
     <name>COM_mistertango</name>
-	<author>MisterTango</author>
-	<creationDate>March 2017</creationDate>
-	<authorEmail>info@mistertango.com</authorEmail>
-	<authorUrl>http://mistertango.com</authorUrl>
-	<copyright></copyright>
-	<license></license>
-	<version>3.0.0</version>
-	<description>Mistertango is a Payment gateway.</description>
-	
-	
-	<install> <!-- Runs on install -->
-		<sql>
-			<file driver="mysql" charset="utf8">sql/install.mysql.utf8.sql</file>
-		</sql>
-	</install>
-	<uninstall> <!-- Runs on uninstall -->
-		<sql>
-			<file driver="mysql" charset="utf8">sql/uninstall.mysql.utf8.sql</file>
-		</sql>
-	</uninstall>
-	
-	<files folder="site">
-		<filename>index.html</filename>
-		<filename>mistertango.php</filename>
-	<filename>controller.php</filename>
-		<folder>views</folder>
-	</files>
-	
-	
-        <languages folder="site/language">
-		<language tag="en-GB">en-GB/en-GB.com_mistertango.ini</language>
-		<language tag="en-GB">en-GB/en-GB.com_mistertango.sys.ini</language>
-        </languages>
-	
-<administration>
-		
-		<files folder="admin">
-			<filename>index.html</filename>
-			<folder>sql</folder>
-		</files>
-		
-	</administration>
+    <author>MisterTango</author>
+    <creationDate>March 2017</creationDate>
+    <authorEmail>info@mistertango.com</authorEmail>
+    <authorUrl>http://mistertango.com</authorUrl>
+    <copyright></copyright>
+    <license></license>
+    <version>3.0.0</version>
+    <description>Mistertango is a Payment gateway.</description>
+
+    <install> <!-- Runs on install -->
+        <sql>
+            <file driver="mysql" charset="utf8">sql/install.mysql.utf8.sql</file>
+        </sql>
+    </install>
+    <uninstall> <!-- Runs on uninstall -->
+        <sql>
+            <file driver="mysql" charset="utf8">sql/uninstall.mysql.utf8.sql</file>
+        </sql>
+    </uninstall>
+
+    <files folder="site">
+        <filename>index.html</filename>
+        <filename>mistertango.php</filename>
+        <filename>controller.php</filename>
+        <folder>views</folder>
+    </files>
+
+    <languages folder="site/language">
+        <language tag="en-GB">en-GB/en-GB.com_mistertango.ini</language>
+        <language tag="en-GB">en-GB/en-GB.com_mistertango.sys.ini</language>
+    </languages>
+
+    <administration>
+        <files folder="admin">
+            <filename>index.html</filename>
+            <folder>sql</folder>
+        </files>
+    </administration>
 </extension>
