@@ -22,6 +22,9 @@
                 <field name="secret" type="text" size="70" default="" label="VMPAYMENT_MISTERTANGO_SECRET" description="VMPAYMENT_MISTERTANGO_SECRET"/>
                 <field name="callback_url" type="text" size="70" default="" label="VMPAYMENT_MISTERTANGO_CALLBACK_URL" description="VMPAYMENT_MISTERTANGO_CALLBACK_URL"/>
             </fieldset>
+            <fieldset name="restrictions" >
+                <field name="countries" multiple="true" type="vmcountries" scope="com_virtuemart" default="" label="VMPAYMENT_STANDARD_COUNTRIES" description="VMPAYMENT_STANDARD_COUNTRIES_TIP"/>
+            </fieldset>
         </fields>
     </vmconfig>
 </extension>
