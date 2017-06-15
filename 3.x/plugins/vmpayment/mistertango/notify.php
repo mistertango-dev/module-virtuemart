@@ -73,38 +73,14 @@ if (!empty($aCallbackBody))
 		die('Amount too small');
 	}
 
-	if (isset($res->order_status) && $res->order_status != 'C')
+	if (isset($res->order_status) && in_array($res->order_status, array('P', 'C')))
 	{
-		$oid    = $res->virtuemart_order_id;
-		$db     = JFactory::getDbo();
-		$query  = $db->getQuery(true);
-		$fields = array(
-			$db->quoteName('order_status') . ' = "C"'
-		);
+		$order = array();
+		$order['order_status'] = 'U';
+		$order['customer_notified'] = 1;
 
-		$conditions = array(
-			$db->quoteName('order_number') . ' = ' . $db->quote($oidd)
-		);
-		$query->update($db->quoteName('#__virtuemart_orders'))->set($fields)->where($conditions);
-
-		$db->setQuery($query);
-		$result = $db->execute();
-
-
-		$db     = JFactory::getDbo();
-		$query  = $db->getQuery(true);
-		$fields = array(
-			$db->quoteName('order_status') . ' = "C"'
-		);
-
-		$conditions = array(
-			$db->quoteName(virtuemart_order_id) . ' = ' . $db->quote($oid)
-		);
-
-		$query->update($db->quoteName('#__virtuemart_order_items'))->set($fields)->where($conditions);
-		$db->setQuery($query);
-
-		$result = $db->execute();
+		$modelOrder = VmModel::getModel ('orders');
+		$modelOrder->updateStatusForOneOrder ($res->virtuemart_order_id, $order, TRUE);
 	}
 
 	die('OK');
