@@ -1,16 +1,18 @@
 <?php
 
-define('DS', DIRECTORY_SEPARATOR);
-
 define('_JEXEC', 1);
 define('JPATH_BASE', dirname(dirname(dirname(dirname(__FILE__)))));
 
-require_once(JPATH_BASE . DS . 'includes' . DS . 'defines.php');
-require_once(JPATH_BASE . DS . 'includes' . DS . 'framework.php');
+require_once(JPATH_BASE . '/includes/defines.php');
+require_once(JPATH_BASE . '/includes/framework.php');
+
 $userid    = '';
 $usertype  = '';
 $mainframe =& JFactory::getApplication('site');
 $mainframe->initialise();
+
+require_once(JPATH_BASE . '/administrator/components/com_virtuemart/helpers/config.php');
+VmConfig::loadConfig();
 
 $user     =& JFactory::getUser();
 $userid   = $user->get('id');
@@ -75,12 +77,29 @@ if (!empty($aCallbackBody))
 
 	if (isset($res->order_status) && in_array($res->order_status, array('P', 'C')))
 	{
-		$order = array();
-		$order['order_status'] = 'U';
+		$order                      = array();
+		$order['order_status']      = 'U';
 		$order['customer_notified'] = 1;
 
-		$modelOrder = VmModel::getModel ('orders');
-		$modelOrder->updateStatusForOneOrder ($res->virtuemart_order_id, $order, TRUE);
+		if (!class_exists('VmModel'))
+		{
+			if (defined('JPATH_VM_ADMINISTRATOR') && file_exists(JPATH_VM_ADMINISTRATOR . '/helpers/vmmodel.php'))
+			{
+				require JPATH_VM_ADMINISTRATOR . '/helpers/vmmodel.php';
+			}
+			else
+			{
+				$this->error = 'Could not find VmModel helper';
+
+				return false;
+			}
+		}
+
+		$modelOrder = VmModel::getModel('orders');
+
+		// @todo: this is quick fix. This whole mess in this file should be completely rewritten
+		JComponentHelper::renderComponent('com_virtuemart');
+		$modelOrder->updateStatusForOneOrder($res->virtuemart_order_id, $order, true);
 	}
 
 	die('OK');
